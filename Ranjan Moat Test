@@ -1,0 +1,145 @@
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+import logging
+import time
+from selenium.webdriver import ActionChains
+
+
+class Moat:
+    def test(self):
+        driver = webdriver.Firefox()
+        Link = "http://www.moat.com"
+        driver.maximize_window()
+        driver.implicitly_wait(5)
+        driver.get(Link)
+
+        time.sleep(10)
+        Search_box = driver.find_element_by_class_name("adsearch__form-input")
+        time.sleep(5)
+
+        print("Bring the search window into view")
+        Search_box.location_once_scrolled_into_view
+        Search_box.click()
+
+        test_string = "well"
+
+        Search_box.send_keys(test_string)
+        Results  = driver.find_elements_by_class_name("search-bar-dropdown-row")
+
+        # ******************************************************************************
+        print("Test 1 : Verify the search bar autocomplete drop down text")
+        # ********************************************************************************
+
+        for item in Results:
+            if test_string in item.text.lower() or item.text.upper() or item.text.title():
+                continue
+            else:
+                logging.error("Searched item is not available in drop down")
+                break
+
+        print("Searched item is available in drop down")
+
+        time.sleep(5)
+
+
+        #******************************************
+        print("Test 2:Verify the creative counts")
+        #******************************************
+        def Creative_count(test_string):
+
+            Search_box = driver.find_element_by_class_name("adsearch__form-input")
+            time.sleep(5)
+            Search_box.click()
+            Search_box.clear()
+
+            Search_box.send_keys(test_string)
+            time.sleep(5)
+            Result = driver.find_elements_by_class_name("search-bar-dropdown-row-info")
+            Result[0].click()
+            time.sleep(2)
+
+            creative_count = driver.find_element_by_class_name("creative-count")
+            count_text = creative_count.text
+            count = str(count_text).split(" ")
+            return count[0]
+
+        def Creative_Count_In_Next_Page(test_string):
+            Search_box = driver.find_element_by_class_name("search-bar-input ")
+            time.sleep(5)
+            Search_box.click()
+            Search_box.clear()
+
+            Search_box.send_keys(test_string)
+            time.sleep(5)
+            Result = driver.find_elements_by_class_name("search-bar-dropdown-row")
+            Result[0].click()
+            time.sleep(2)
+
+            creative_count = driver.find_element_by_class_name("creative-count")
+            count_text = creative_count.text
+            count = str(count_text).split(" ")
+            return count[0]
+
+        creative_count_for_Saturn = Creative_count("Saturn")
+
+        if creative_count_for_Saturn == "205":
+            print("Creative count for Saturn is correct")
+        else:
+            print("Creative count for saturn is not correct")
+
+
+        creative_count_for_Saturday_Market = Creative_Count_In_Next_Page("Saturday's Market")
+
+        if creative_count_for_Saturday_Market == "8":
+            print("Creative count for Satuday's Market is correct")
+        else:
+            print("Creative count for Satuday's Market is not correct")
+
+        creative_count_for_Krux = Creative_Count_In_Next_Page("Krux")
+
+        if creative_count_for_Krux == "51":
+            print("Creative count for Krux is correct")
+        else:
+            print("Creative count for Krux is not correct")
+
+        # Random_Brand = driver.find_element_by_link_text("Random Brand")
+
+        #***********************************************************************************
+        print("Test 3:Verify the 'Random Brand' link on the search results page is random.")
+        #***********************************************************************************
+        title = []
+
+        for i in range(5):
+            w = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.LINK_TEXT,"Random Brand")))
+            w.click()
+            time.sleep(5)
+            Page_type = driver.find_element_by_class_name("page-type")
+            title.append(Page_type.text)
+            time.sleep(5)
+
+        if len(title) == len(set(title)):
+            print("Random Brand link is random")
+        else:
+            print("Random Brand link is not random")
+
+        # **********************************************
+        print("Test 4: Verify the 'Share' ad feature ")
+        # ************************************************
+        element = driver.find_element_by_class_name("er-creative-container")
+        actions = ActionChains(driver)
+        actions.move_to_element(element).perform()
+        time.sleep(5)
+        Share = driver.find_element_by_link_text("Share")
+
+        if Share.text== "Share":
+            print("Share Button verified")
+        else:
+            print("Share Button not verified")
+
+
+        driver.close()
+
+t = Moat()
+t.test()
